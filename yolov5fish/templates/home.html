@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">  <!-- utf-8 문자 형식 사용-->
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">  <!-- 메타 데이터의 형식은 view port 내용은 너비, 초기 scale 설정 -->
+
+  <title>Real Time Tank Detector</title>
+  <link rel = "stylesheet" href="\static\index.css"><!-- index.css 파일 load -->
+  <script defer src="static\index.js"></script> <!-- index.js파일 load -->
+</head>
+
+<body>
+  <div class ="topnav"> <!-- index.css 파일의 topnav 설정 값을 사용-->
+    <a class="{{ 'active' if request.path == '/' else '' }}" href="{{ url_for('home') }}">Home</a> <!-- -->
+    <a class="{{ 'active' if request.path == '/tank_detector' else '' }}" href="{{ url_for('tank_detector') }}">Tank Detector</a>
+  </div>
+  <h1 style="margin-left: 20px;">YOLOv5s Real Time Tank Detector</h1>
+  <p style="margin-left: 20px;">The YOLOv5s Real Time Tank Detector is an advanced system capable of detecting target tanks in real-time.</p>
+
+  <p style="margin-left: 20px;">Operation:</p>
+  <div class = "Tank Detector">
+    <p style="margin-left: 20px;">Tank Detector: The system is actively detecting target tanks.</p>
+  <ul style="margin-left: 20px;">
+    <li>Run: Activating the detector for real-time tank detection.</li>
+    <li>Stop: Deactivating the detector to pause tank detection.</li>
+  </ul>
+</div>
+</body>
+</html>
