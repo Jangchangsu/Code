@@ -1,0 +1,11 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "type_traits": "cpp",
+        "blocking_hash_bucket": "c",
+        "time.h": "c",
+        "bitset": "c",
+        "chrono": "c",
+        "complex": "c"
+    }
+}

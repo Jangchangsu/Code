@@ -77,15 +77,18 @@ class file_system:
 
     def get_parent(self, path):
         index_of_last_slash = path.rfind('/')
-        print('index_of_last_slash: %d' %index_of_last_slash)
         if index_of_last_slash == 0:
             return '/', path[index_of_last_slash+1:len(path)]
         return path[0:index_of_last_slash], path[index_of_last_slash+1:len(path)]
 
     def name_to_inode(self, path):
+        print('name to inode map : %s' %self.name_to_inode_map)
+        print ('path  : ', path)
         if path not in self.name_to_inode_map:
+            print ('wrong path')
             return -1
         else:
+            print('name to inode map [path] :' ,self.name_to_inode_map[path])
             return self.name_to_inode_map[path]
 
     def set_name_to_inode(self, path, inode_num):
@@ -93,6 +96,7 @@ class file_system:
             print('abort: path already in mapping (internal error)')
             exit(1)
         self.name_to_inode_map[path] = inode_num
+        print('set inode number to %d' %inode_num)
         return
 
     def get_free_count(self, group, bitmap):
@@ -100,6 +104,7 @@ class file_system:
         for b in bitmap:
             if b == self.BITMAP_FREE:
                 cnt += 1
+        print('counting free bit in group :', cnt)
         return cnt
 
     def get_free_inode_count(self, group):
@@ -107,7 +112,7 @@ class file_system:
 
     def get_free_data_count(self, group):
         return self.get_free_count(group, self.data_bitmap[group])
-
+    """
     def find_most_free_inodes(self, starting_point):
         free_inodes_max = 0
         target_group = -1
@@ -121,43 +126,56 @@ class file_system:
             if free_inodes_in_group > free_inodes_max:
                 free_inodes_max = free_inodes_in_group
                 target_group = g
+        print('Target group (finding in single mode) : ', target_group)
         return target_group
-
+    """
     def find_free_inodes_in_range(self, group, how_many):
         sum_free = 0
         for g in range(group, group + how_many):
             g_curr = g % self.num_groups
             free_inodes_in_group = self.get_free_inode_count(g_curr)
             sum_free += free_inodes_in_group
+        print('free inodes summation : ', sum_free)
         return sum_free
 
     def find_most_free_inodes_multiple(self, starting_point, how_many):
         free_inodes_max = 0
         target_group = -1
+        print('starting point : ', starting_point)
+        print('how_many: ', how_many)
         for g in range(starting_point, self.num_groups, how_many):
             sum_free = self.find_free_inodes_in_range(g, how_many)
             if sum_free > free_inodes_max:
                 free_inodes_max = sum_free
                 target_group = g
+        print('Done from starting_point to end_point')
         for g in range(0, starting_point, how_many):
             sum_free = self.find_free_inodes_in_range(g, how_many)
             if sum_free > free_inodes_max:
                 free_inodes_max = sum_free
                 target_group = g
+        print('Done from zero_point to starting_point')
         assert(target_group != -1)
+        print('Target group (finding in multiple mode) : ', target_group)
         return target_group
 
     def find_free_inodes_near(self, target_group):
         grower = (target_group + 1) % self.num_groups
         shrinker = (target_group - 1) % self.num_groups
+        print("grower : ", grower)
+        print("shrinker : ", shrinker)
+        print("searching free inodes from neargroup")
         for i in range(self.num_groups - 1):
             if i % 2 == 0:
                 current_group = grower
                 grower = (grower + 1) % self.num_groups
+                print('current near group(grower): ', grower)
             else:
                 current_group = shrinker
                 shrinker = (shrinker - 1) % self.num_groups
+                print('current near group(shrinker): ', shrinker)
             if self.get_free_inode_count(current_group) > 0:
+                print('closet group : ', current_group)
                 return current_group
         return 1
 
@@ -207,13 +225,17 @@ class file_system:
         allocated_in_group = 0
         current_group = target_group
         chunks_free = self.contig_allocation_policy
+        print('First Time line chunks_free : ', chunks_free)
         while True:
             if self.range_free(current_group, index, size-len(allocated), chunks_free):
                 # print('  local alloc', current_group, index)
                 assert(self.data_bitmap[current_group][index] == self.BITMAP_FREE)
+                print('Before data_bitmap: ', self.data_bitmap[current_group][index])
                 self.data_bitmap[current_group][index] = inode_number
+                print('After data_bitmap: ', self.data_bitmap[current_group][index])
                 allocated_in_group += 1
                 allocated.append((current_group, index))
+                print('allocated : ',allocated)
             index += 1
 
             if len(allocated) == size:
@@ -226,6 +248,7 @@ class file_system:
             if index == self.blocks_per_group or \
                (self.large_file_exception > 0 and \
                 allocated_in_group == self.large_file_exception):
+                print('move to next group')
                 allocated_in_group = 0
                 index = 0
                 current_group = (current_group + 1) % self.num_groups
@@ -257,8 +280,9 @@ class file_system:
         return min_group
 
     def mark_inode_used(self, group, inode_index):
-        self.inode_bitmap[group][inode_index] = inode_index + \
-                                                (group * self.inodes_per_group)
+        print("before allocate inode_bitmap : ", self.inode_bitmap[group][inode_index])
+        self.inode_bitmap[group][inode_index] = inode_index + (group * self.inodes_per_group)
+        print("After allocate inode_bitmap : ", self.inode_bitmap[group][inode_index])
         return
 
     def do_delete(self, path):
@@ -340,7 +364,7 @@ class file_system:
 
         # file allocation policy: could fail
         # allocated = self.allocate_blocks(group, size, inode_number)
-        if self.spread_data_blocks:
+        if self.spreadevch_data_blocks:
             dest_block_group = self.find_min_data_usage()
             print('target alloc', dest_block_group)
             allocated = self.allocate_blocks(dest_block_group, size, inode_number)
@@ -465,6 +489,7 @@ class file_system:
             tmp = in_line.split()
             if len(tmp) == 0:
                 continue
+            print('\n')
             print('This work about ' + line)
             print('in_line : ' + in_line)
             print('line_len : %d' %line_len)
@@ -489,6 +514,7 @@ class file_system:
                 print('command not recognized', tmp[0])
                 exit(1)
             self.do_verify()
+            self.dump()
         fd.close()
         return
 

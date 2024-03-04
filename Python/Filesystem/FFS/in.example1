@@ -4,4 +4,4 @@ file /a/c 2
 file /a/d 2
 file /a/e 2
 file /b/f 2
-file /g 2
+dir /a/h

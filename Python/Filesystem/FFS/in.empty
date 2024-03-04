@@ -1,1 +1,2 @@
-
+dir /a
+file /a/b 40
