@@ -3,8 +3,8 @@
 #include <pthread.h>
 #include <time.h>
 
-#define BUCKETRANGE 100
-#define DATARANGE 100000
+#define BUCKETRANGE 10
+#define DATARANGE 1000
 #define BUCKET (DATARANGE/BUCKETRANGE)
 #define NUMINSERT 10000
 #define NUMSEARCH 10000
